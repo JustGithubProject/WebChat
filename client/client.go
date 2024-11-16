@@ -1,14 +1,14 @@
-package client
+package main
 
 import (
 	"os"
 	"log"
-	"net/http"
+	"net"
 	"encoding/base64"
 )
 
 // Constants
-var targetWebSocketServer = "ws://localhost:8000"
+var targetWebSocketServer = "localhost:8000"
 
 func generateSecWebSocketKey(username string) string {
 	return base64.StdEncoding.EncodeToString([]byte(username))
@@ -16,25 +16,38 @@ func generateSecWebSocketKey(username string) string {
 
 
 func connectToWebSocketServer(username string) {
-	client := &http.Client{}
-	request, err := http.NewRequest("GET", targetWebSocketServer, nil)
-	if err != nil {
-		log.Println("Failed to wrap NewRequestWithContext")
-		os.Exit(1)
-	}
-	// Setting headers
-	request.Header.Set("Connection", "Upgrade")
-	request.Header.Set("Upgrade", "websocket")
-	request.Header.Set("Sec-WebSocket-Key", generateSecWebSocketKey(username))
-	request.Header.Set("Sec-WebSocket-Version", "13")
+	key := generateSecWebSocketKey(username)
 
-	response, err := client.Do(request)
+	// Manually create a TCP connection to send HTTP upgrade request
+	conn, err := net.Dial("tcp", targetWebSocketServer)
 	if err != nil {
-		log.Println("Failed to connect to websocket server")
+		log.Println("Failed to connect to server:", err)
 		os.Exit(1)
 	}
-	log.Println(response.StatusCode)
+	defer conn.Close()
+
+	// Build HTTP Upgrade request
+	req := "GET /ws HTTP/1.1\r\n" +
+		"Host: " + targetWebSocketServer + "\r\n" +
+		"Connection: Upgrade\r\n" +
+		"Upgrade: websocket\r\n" +
+		"Sec-WebSocket-Key: " + key + "\r\n" +
+		"Sec-WebSocket-Version: 13\r\n\r\n"
+
+	// Send request
+	conn.Write([]byte(req))
+
+	// Read and print server response
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
+	if err != nil {
+		log.Println("Failed to read response:", err)
+		os.Exit(1)
+	}
+	log.Println("Server response:")
+	log.Println(string(buf[:n]))
 }
+
 
 
 func main() {
