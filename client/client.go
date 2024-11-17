@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"os"
 	"log"
 	"net"
@@ -12,6 +13,40 @@ var targetWebSocketServer = "localhost:8000"
 
 func generateSecWebSocketKey(username string) string {
 	return base64.StdEncoding.EncodeToString([]byte(username))
+}
+
+
+func encodeWebSocketMessage(message string) []byte {
+	length := len(message)
+	/*
+		0x81 = 10000001
+		It will set first bit to 1 (FIN bit)
+	*/
+	header := []byte{0x81}
+
+	if length < 126 {
+		/*
+			EXAMPLE:
+				if we have length = 0x33 (51)
+				header = {0x81, 0x33}
+		*/
+		header = append(header, byte(length))
+
+	} else if length <= 65535 {
+		/*
+			EXAMPLE:
+				if we have length = 0xABCD
+				0xABCD >> 8 = 0xAB
+				0xABCD & 0xFF = 0xCD
+				header = {0x81, 0xAB, 0xCD}
+		*/
+		header = append(header, 126, byte(length >> 8), byte(length & 0xFF))
+	} else {
+		log.Println("Message too long")
+		return nil
+	}
+	return append(header, []byte(message)...)
+
 }
 
 
@@ -46,6 +81,34 @@ func connectToWebSocketServer(username string) {
 	}
 	log.Println("Server response:")
 	log.Println(string(buf[:n]))
+
+	// Enter a loop to read response from websocket server
+	go func() {
+		buffer := make([]byte, 1024)
+
+		for {
+			n, err := conn.Read(buffer)
+			if err != nil {
+				log.Println("Failed to read response: ", err)
+				os.Exit(1)
+			}
+			log.Println(string(buffer[:n]))
+		}
+	}()
+
+	// Enter a loop to do request to websocket server
+	scanner := bufio.NewScanner(conn)
+	for scanner.Scan() {
+		message := scanner.Text()
+		if message == "exit" {
+			log.Println("Closing connection")
+			os.Exit(1)
+		}
+
+	}
+
+
+
 }
 
 
