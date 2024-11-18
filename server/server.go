@@ -1,22 +1,25 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	"log"
 	"os"
 	"io"
 	"net/http"
 	"crypto/sha1"
 	"encoding/base64"
+	"strings"
 )
 
 var GUID = "b218e612-c447-4bb0-8513-3c8319601232"
+
 
 func generateSecWebSocketAccept(secWebSocketKey string) string {
 	hasher := sha1.New()
 	hasher.Write([]byte(secWebSocketKey + GUID))
 	return base64.StdEncoding.EncodeToString(hasher.Sum(nil))
 }
+
 
 func handleClient(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Connection") != "Upgrade" || r.Header.Get("Upgrade") != "websocket" {
@@ -50,9 +53,27 @@ func handleClient(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("WebSocket connection established")
 	io.WriteString(conn, "Hello, WebSocket\n")
+
 }
+
+
+func handleHRoomPage(w http.ResponseWriter, r *http.Request) {
+	body, _ := os.ReadFile("templates/room.html")
+	path := strings.TrimPrefix(r.URL.Path, "/room/")
+	log.Println(path)
+	fmt.Fprint(w, string(body))
+}
+
+
+func handleForm(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		// TODO: ...
+	}
+}
+
 
 func main() {
 	http.HandleFunc("/ws", handleClient)
+	http.HandleFunc("/room/", handleHRoomPage)
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }

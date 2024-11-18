@@ -104,14 +104,10 @@ func connectToWebSocketServer(username string) {
 			log.Println("Closing connection")
 			os.Exit(1)
 		}
-
+		encodedMessage := encodeWebSocketMessage(message)
+		conn.Write(encodedMessage)
 	}
-
-
-
 }
-
-
 
 func main() {
 	connectToWebSocketServer("Kai Cenat")
