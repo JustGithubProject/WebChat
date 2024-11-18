@@ -57,23 +57,22 @@ func handleClient(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func handleHRoomPage(w http.ResponseWriter, r *http.Request) {
+func handleRoomPage(w http.ResponseWriter, r *http.Request) {
 	body, _ := os.ReadFile("templates/room.html")
 	path := strings.TrimPrefix(r.URL.Path, "/room/")
 	log.Println(path)
 	fmt.Fprint(w, string(body))
 }
 
-
-func handleForm(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
-		// TODO: ...
-	}
+func handleHomePage(w http.ResponseWriter, r *http.Request) {
+	body, _ := os.ReadFile("templates/home.html")
+	fmt.Fprint(w, string(body))
 }
 
 
 func main() {
 	http.HandleFunc("/ws", handleClient)
-	http.HandleFunc("/room/", handleHRoomPage)
+	http.HandleFunc("/room/", handleRoomPage)
+	http.HandleFunc("/", handleHomePage)
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
