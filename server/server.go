@@ -23,14 +23,14 @@ func generateSecWebSocketAccept(secWebSocketKey string) string {
 
 func handleClient(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("Connection") != "Upgrade" || r.Header.Get("Upgrade") != "websocket" {
-		http.Error(w, "400 - Invalid Request", http.StatusBadRequest)
+		log.Println("400 - Invalid Request")
 		os.Exit(1) 
 	}
 
 	// Generating value for Sec-WebSocket-Accept header
 	secWebSocketKey := r.Header.Get("Sec-WebSocket-Key")
 	if secWebSocketKey == "" {
-		http.Error(w, "400 - Missing Sec-WebSocket-Key", http.StatusBadRequest)
+		log.Println("400 - Missing Sec-WebSocket-Key")
 		os.Exit(1)
 	}
 	generatedSecWebSocketAcceptString := generateSecWebSocketAccept(secWebSocketKey)
