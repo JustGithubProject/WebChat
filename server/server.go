@@ -64,6 +64,7 @@ func handleRoomPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(body))
 }
 
+
 func handleHomePage(w http.ResponseWriter, r *http.Request) {
 	body, _ := os.ReadFile("templates/home.html")
 	fmt.Fprint(w, string(body))
