@@ -39,7 +39,7 @@ var broadcast = make(chan Message)
 
 
 func handleHomePage(w http.ResponseWriter, r *http.Request) {
-	content, err := os.ReadFile("home.html");
+	content, err := os.ReadFile("assets/home.html");
 	if err != nil {
 		log.Println("Failed to read home.html file")
 		return
@@ -89,6 +89,7 @@ func handleMessages() {
 
 
 func main() {
+	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("assets"))))
 	http.HandleFunc("/", handleHomePage)
 	http.HandleFunc("/ws", handleConnections)
 

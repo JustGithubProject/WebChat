@@ -11,4 +11,4 @@ Here's a summary of the key steps:
     go run server.go  
 ```
 
-![Description](example.png)
+![Description](assets/example.png)
