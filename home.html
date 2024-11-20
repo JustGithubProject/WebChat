@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Client</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            text-align: center;
+            width: 100%;
+        }
+        h1 {
+            color: #555;
+        }
+        input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        ul li {
+            background-color: #f9f9f9;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WebSocket Client</h1>
+        <input type="text" id="username" placeholder="Enter your username">
+        <input type="text" id="message" placeholder="Enter your message">
+        <button id="send">Send Message</button>
+        <ul id="messages"></ul>
+    </div>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:8000/ws");
+
+        socket.addEventListener("open", () => {
+            console.log("Connected to WebSocket server");
+        });
+
+        socket.addEventListener("message", (event) => {
+            const msg = JSON.parse(event.data);
+            const username = msg.username;
+            const text = msg.text;
+
+            const messagesList = document.getElementById("messages");
+            const listItem = document.createElement("li");
+            listItem.textContent = `${username}: ${text}`;
+            messagesList.append(listItem);
+        });
+
+        socket.addEventListener("close", () => {
+            console.log("Disconnected from WebSocket server");
+        });
+
+        document.getElementById("send").addEventListener("click", () => {
+            const username = document.getElementById("username").value.trim();
+            const message = document.getElementById("message").value.trim();
+
+            if (username && message) {
+                const msg = {
+                    username: username,
+                    text: message
+                };
+
+                socket.send(JSON.stringify(msg));
+                document.getElementById("message").value = ''; 
+            } else {
+                alert("Enter your username and message");
+            }
+        });
+    </script>
+</body>
+</html>

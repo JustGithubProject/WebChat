@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,7 +26,7 @@ var upgrader = websocket.Upgrader{
 
 type Message struct {
 	Username string `json:"username"`
-	Text string `json:"message"`
+	Text string `json:"text"`
 }
 
 
@@ -38,7 +39,12 @@ var broadcast = make(chan Message)
 
 
 func handleHomePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to Home Page")
+	content, err := os.ReadFile("home.html");
+	if err != nil {
+		log.Println("Failed to read home.html file")
+		return
+	}
+	fmt.Fprint(w, string(content))
 }
 
 
